@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.EntityFrameworkCore;
 using ProFlow.Core.DAL.SqlServerData.Context;
 
 namespace ProFlow.Core.WebAPI.Extensions
@@ -12,6 +13,5 @@ namespace ProFlow.Core.WebAPI.Extensions
 
             context?.Database.Migrate();
         }
-
     }
 }

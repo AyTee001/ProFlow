@@ -2,6 +2,8 @@ using ProFlow.Core.BLL.Interfaces;
 using ProFlow.Core.BLL.MappingProfiles;
 using ProFlow.Core.BLL.Services;
 using ProFlow.Core.WebAPI.Extensions;
+using ProFlow.Core.WebAPI.Filters;
+using ProFlow.Core.WebAPI.GlobalMiddleware;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 
 namespace ProFlow.Core.WebAPI
@@ -24,12 +26,14 @@ namespace ProFlow.Core.WebAPI
             builder.Services.AddProFlowMongoDbContext(builder.Configuration);
             builder.Services.AddProFlowSqlContext(builder.Configuration);
 
-            builder.Services.AddControllers();
+            builder.Services.AddControllers(options => options.Filters.Add<ProFlowExceptionFilter>());
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
             var app = builder.Build();
+
+            app.UseMiddleware<GenericExceptionHandlerMiddleware>();
 
             app.UseProFlowSqlContext();
 

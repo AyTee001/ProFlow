@@ -13,7 +13,7 @@ namespace ProFlow.Core.BLL.Interfaces
         Task<ICollection<FullCardDto>> GetAllCardsAsync();
         Task<FullCardDto> GetCardByIdAsync(string cardId);
         Task DeleteCardByIdAsync(DeleteInfo cardDeleteInfo);
-        Task DeleteCardChecklistByIdAsync(DeleteInfo cardDeleteInfo);
+        Task DeleteCardChecklistByIdAsync(string cardId,DeleteInfo cardDeleteInfo);
         Task<FullCardDto> CreateCardAsync();
         Task<Checklist> CreateCardChecklistAsync(string cardId);
         Task UpdateCardChecklistAsync(ChecklistUpdateDto checklist);

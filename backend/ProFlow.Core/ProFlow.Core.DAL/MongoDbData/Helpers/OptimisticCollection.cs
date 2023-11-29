@@ -3,6 +3,7 @@ using MongoDB.Driver;
 using MongoDB.Driver.Core.Misc;
 using ProFlow.Core.DAL.Entities.Base;
 using ProFlow.Core.DAL.Entities.HelperEntities;
+using ProFlow.Core.DAL.Exceptions;
 using System.Data;
 using System.Linq.Expressions;
 
@@ -18,7 +19,7 @@ namespace ProFlow.Core.DAL.MongoDbData.Helpers
             _collection = mongoCollection;
         }
 
-        public async Task<T> GetById(string id)
+        public async Task<T?> GetById(string id)
         {
             var filter = Builders<T>.Filter.Eq(t => t.Id, id);
 
@@ -53,7 +54,13 @@ namespace ProFlow.Core.DAL.MongoDbData.Helpers
             FilterDefinition<T> filter = Builders<T>.Filter.Eq(x => x.Id, obj.Id)
                     & Builders<T>.Filter.Eq(r => r.Version, obj.Version);
 
-            _ = await _collection.FindOneAndDeleteAsync(filter) ?? throw new DBConcurrencyException("Failed to delete document");
+            _ = await _collection.FindOneAndDeleteAsync(filter) ?? throw new PreconditionFailedException(nameof(obj), obj.Id!);
+        }
+        public async Task DeleteManyNoConcurrencyControlAsync(Expression<Func<T, bool>> filter)
+        {
+            Ensure.IsNotNull(filter, nameof(filter));
+
+            await _collection.DeleteManyAsync(filter);
         }
 
         public async Task<T> ReplaceOneAsync(T obj)
@@ -70,7 +77,7 @@ namespace ProFlow.Core.DAL.MongoDbData.Helpers
                     IsUpsert = false,
                     ReturnDocument = ReturnDocument.After
                 })
-            ?? throw new DBConcurrencyException("Could not replace the object");
+            ?? throw new PreconditionFailedException(nameof(obj), obj.Id!);
         }
 
         public async Task UpsertOneAsync(T obj)
@@ -87,7 +94,7 @@ namespace ProFlow.Core.DAL.MongoDbData.Helpers
                     IsUpsert = true,
                     ReturnDocument = ReturnDocument.After
                 })
-            ?? throw new DBConcurrencyException("Could not upsert the document");
+            ?? throw new PreconditionFailedException(nameof(obj), obj.Id!);
         }
 
         public async Task<T> UpdateOneAsync(MongoDbEntity obj, UpdateDefinition<T> updateDefinition)
@@ -98,12 +105,12 @@ namespace ProFlow.Core.DAL.MongoDbData.Helpers
             return await _collection.FindOneAndUpdateAsync<T>(
                 Builders<T>.Filter.Eq(r => r.Id, obj.Id)
                     & Builders<T>.Filter.Eq(r => r.Version, currentVersion), 
-                updateDefinition,
+                updateDefinition.Set(e => e.Version, obj.Version),
                 new FindOneAndUpdateOptions<T>
                 {
                     ReturnDocument = ReturnDocument.After
                 })
-            ?? throw new DBConcurrencyException("Could not update the document");
+            ?? throw new PreconditionFailedException(nameof(obj), obj.Id!);
         }
     }
 }

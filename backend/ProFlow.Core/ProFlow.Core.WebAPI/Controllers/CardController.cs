@@ -11,7 +11,7 @@ namespace ProFlow.Core.WebAPI.Controllers
     [ApiController]
     public class CardController : ControllerBase
     {
-        private ICardService _cardService;
+        private readonly ICardService _cardService;
         public CardController(ICardService cardService) 
         { 
             _cardService = cardService;
@@ -61,10 +61,10 @@ namespace ProFlow.Core.WebAPI.Controllers
             return Ok(await _cardService.CreateCardChecklistAsync(cardId));
         }
 
-        [HttpDelete("checklists")]
-        public async Task<ActionResult> DeleteCheckList([FromBody] DeleteInfo cardDeleteInfo)
+        [HttpDelete("{cardId}/checklists")]
+        public async Task<ActionResult> DeleteCheckList([FromRoute] string cardId, [FromBody] DeleteInfo cardDeleteInfo)
         {
-            await _cardService.DeleteCardChecklistByIdAsync(cardDeleteInfo);
+            await _cardService.DeleteCardChecklistByIdAsync(cardId, cardDeleteInfo);
             return Ok();
         }
     }
